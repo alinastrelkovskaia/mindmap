@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind / Map | Alina Strelkovskaia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                        'serif': ['Lora', 'serif'],
+                    },
+                    colors: {
+                        'brand-bg': '#FFFFFF', // Clean white for more "air"
+                        'brand-dark': '#1A1A1A',
+                        'brand-gold': '#B0926A',
+                        'brand-light': '#F5F5F5',
+                        'brand-gray': '#6B6B6B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF; /* brand-bg */
+            /* Using your provided background image */
+            background-image: url('C:\Of life and in-between\Job woes\backgroundimg.png'); /* This is a re-hosted version of your image */
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+        }
+        .content-wrapper {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent overlay for readability */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="text-brand-dark">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-slate-200/50">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="#" class="flex items-center space-x-3">
+                    <img src="C:\Of life and in-between\Job woes\logo.jpg" alt="Mind / Map Logo" class="h-10">
+                </a>
+                <nav class="hidden md:flex items-center space-x-6 text-sm font-semibold">
+                    <a href="#services" class="text-brand-gray hover:text-brand-dark transition-colors">What I Do</a>
+                    <a href="#contact" class="bg-brand-dark text-white px-5 py-2.5 rounded-full hover:bg-black transition-colors">Let's Talk</a>
+                </nav>
+                <div class="md:hidden">
+                    <a href="#contact" class="bg-brand-dark text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-black transition-colors">Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6">
+        <!-- Hero Section -->
+        <section class="py-24 md:py-40 text-center">
+            <h2 class="text-base font-semibold text-brand-gold tracking-widest uppercase mb-4">Alina Strelkovskaia</h2>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-brand-dark leading-tight mb-6">Digital Learning Strategist</h1>
+            <p class="max-w-2xl mx-auto text-lg text-brand-gray mb-10">
+                I help EdTech and publishing companies solve complex problems at the intersection of content, technology, and people. If you need a clear path forward, I design the system that gets you there.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#services" class="bg-brand-dark text-white px-6 py-3 rounded-full font-semibold hover:bg-black transition-colors">Learn What I Do</a>
+                <a href="https://www.linkedin.com/in/alinastrelkovskaia" target="_blank" class="bg-white text-brand-dark px-6 py-3 rounded-full font-semibold hover:bg-brand-light transition-colors border border-slate-200">Visit my LinkedIn</a>
+                <a href="https://alinastrelkovskaia.substack.com/" target="_blank" class="bg-white text-brand-dark px-6 py-3 rounded-full font-semibold hover:bg-brand-light transition-colors border border-slate-200">Read my Writings</a>
+            </div>
+        </section>
+
+
+        <!-- Services Section -->
+        <section id="services" class="py-20 fade-in-section">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark">What I Do</h2>
+                <p class="text-brand-gray mt-2">I offer fractional support to bridge gaps and accelerate your projects.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div class="bg-white/70 content-wrapper p-8 rounded-2xl shadow-lg border border-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-brand-gold mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m0 10V7m0 10h.01" /></svg>
+                    <h3 class="font-bold text-lg text-brand-dark mb-2">Digital Strategy & Roadmapping</h3>
+                    <p class="text-sm text-brand-gray">I help teams translate high-level business goals into actionable digital product and content roadmaps.</p>
+                </div>
+                <!-- Service 2 -->
+                <div class="bg-white/70 content-wrapper p-8 rounded-2xl shadow-lg border border-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-brand-gold mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" /></svg>
+                    <h3 class="font-bold text-lg text-brand-dark mb-2">Process Optimisation & Workflow Design</h3>
+                    <p class="text-sm text-brand-gray">My core skill is taming chaos. I analyse existing workflows, identify friction, and design lean systems for your teams.</p>
+                </div>
+                <!-- Service 3 -->
+                <div class="bg-white/70 content-wrapper p-8 rounded-2xl shadow-lg border border-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-brand-gold mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <h3 class="font-bold text-lg text-brand-dark mb-2">Cross-Functional Project Leadership</h3>
+                    <p class="text-sm text-brand-gray">I act as the bridge between editorial, product, and engineering, translating needs and driving projects from concept to launch.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20 fade-in-section">
+            <div class="content-wrapper rounded-2xl shadow-2xl border border-white">
+                 <div class="grid md:grid-cols-2 gap-12 items-center p-12">
+                    <div class="text-center md:text-left">
+                        <h2 class="text-3xl md:text-4xl font-bold text-brand-dark">Have a Challenge in Mind?</h2>
+                        <p class="text-brand-gray mt-4 mb-8">I'm currently available for fractional consulting and project-based work. If you have a complex digital project that needs a clear path forward, I'd love to hear from you.</p>
+                         <a id="emailLink" href="mailto:strelkovskaia@gmail.com" class="font-bold text-lg text-brand-dark bg-brand-light/80 px-6 py-3 rounded-full hover:bg-white transition-colors border border-slate-200 inline-block">
+                            strelkovskaia@gmail.com
+                        </a>
+                    </div>
+                    <div class="flex justify-center">
+                        <div class="w-48 h-48 rounded-full overflow-hidden shadow-xl border-8 border-white">
+                            <img src="https://placehold.co/200x200/F5F5F5/1A1A1A?text=AS" alt="Alina Strelkovskaia professional headshot placeholder">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-8">
+        <p class="text-sm text-brand-gray">&copy; 2025 MIND / MAP | Alina Strelkovskaia. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Simple copy to clipboard function
+        function copyEmail() {
+            const email = 'strelkovskaia@gmail.com';
+            const dummy = document.createElement('textarea');
+            document.body.appendChild(dummy);
+            dummy.value = email;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+
+            const successMessage = document.getElementById('copySuccess');
+            successMessage.style.display = 'block';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 2000);
+        }
+
+        // Fade-in animation on scroll
+        const faders = document.querySelectorAll('.fade-in-section');
+        const appearOptions = {
+            threshold: 0.15,
+            rootMargin: "0px 0px -50px 0px"
+        };
+        const appearOnScroll = new IntersectionObserver(function(entries, appearOnScroll) {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) {
+                    return;
+                } else {
+                    entry.target.classList.add('is-visible');
+                    appearOnScroll.unobserve(entry.target);
+                }
+            });
+        }, appearOptions);
+
+        faders.forEach(fader => {
+            appearOnScroll.observe(fader);
+        });
+    </script>
+</body>
+</html>
+
