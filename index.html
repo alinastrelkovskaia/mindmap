@@ -52,6 +52,17 @@
             opacity: 1;
             transform: translateY(0);
         }
+        
+        /* --- INTEGRATION 1: ADDED CSS FOR THE COPY SUCCESS MESSAGE --- */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(10px); }
+        }
+        .fade-in-out {
+            animation: fadeInOut 2s ease-in-out forwards;
+        }
     </style>
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3RTL50KFZT"></script>
@@ -90,7 +101,7 @@
             <h2 class="text-base font-semibold text-brand-gold tracking-widest uppercase mb-4">Alina Strelkovskaia</h2>
             <h1 class="text-5xl md:text-[68px] font-extrabold text-brand-dark leading-tight mb-6">Digital Learning Strategist</h1>
             <p class="max-w-2xl mx-auto text-lg text-brand-gray mb-10">
-                I help EdTech, publishing companies and L&D  teams to  solve complex problems at the intersection of content, technology and people. If you need a clear path forward, I draw the map that gets you there.
+                I help EdTech, publishing companies and L&D  teams to  solve complex problems at the intersection of content, technology and people. If you need a clear path forward, I draw the map that gets you there.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="#services" class="bg-brand-dark text-white px-6 py-3 rounded-full font-semibold hover:bg-black transition-colors">Learn what I do</a>
@@ -160,15 +171,22 @@
                         <p class="text-brand-gray mt-4 mb-8 text-base">I'm available for fractional consulting and project-based work. If you have a complex digital initiative that needs oversight, I'd love to hear about your case.</p>
                          <div class="flex items-center justify-center md:justify-start space-x-4">
 
-    <a id="calendlyLink" href="https://calendar.app.google/m1HCPpJTSSKvUWmr5" target="_blank" rel="noopener noreferrer" class="font-bold text-lg text-brand-dark bg-brand-light/80 px-6 py-3 rounded-full hover:bg-white transition-colors border border-slate-200 inline-block">
-        Book an appointment
-    </a>
+                            <a id="calendlyLink" href="https://calendar.app.google/m1HCPpJTSSKvUWmr5" target="_blank" rel="noopener noreferrer" class="font-bold text-lg text-brand-dark bg-brand-light/80 px-6 py-3 rounded-full hover:bg-white transition-colors border border-slate-200 inline-block">
+                                Book an appointment
+                            </a>
+                            
+                            <!-- --- INTEGRATION 2: REPLACED THE OLD HTML LINK WITH THE NEW BUTTON SYSTEM --- -->
+                            <div class="relative inline-block">
+                                <button id="emailButton" type="button" class="font-bold text-lg text-brand-dark bg-brand-light/80 px-6 py-3 rounded-full hover:bg-white transition-colors border border-slate-200 inline-block">
+                                    Email me
+                                </button>
+                                <input type="text" value="alina.strelkovskaia@mind-map.tech" id="emailInput" class="absolute" style="left: -9999px; top: -9999px;" aria-hidden="true" tabindex="-1">
+                                <div id="copySuccessMessage" class="hidden absolute -bottom-10 left-1/2 -translate-x-1/2 bg-brand-dark text-white text-sm font-medium py-1 px-3 rounded-md">
+                                    Email copied!
+                                </div>
+                            </div>
 
-    <a id="emailLink" href="mailto:alina.strelkovskaia@mind-map.tech" target="_blank" rel="noopener noreferrer" class="font-bold text-lg text-brand-dark bg-brand-light/80 px-6 py-3 rounded-full hover:bg-white transition-colors border border-slate-200 inline-block">
-        Email me
-    </a>
-
-</div>
+                        </div>
                     </div>
                     <div class="flex justify-center">
                         <div class="w-60 h-60 rounded-full overflow-hidden shadow-xl border-8 border-white">
@@ -186,42 +204,64 @@
     </footer>
 
     <script>
-        // Simple copy to clipboard function
-        function copyEmail() {
-            const email = 'strelkovskaia@gmail.com';
-            const dummy = document.createElement('textarea');
-            document.body.appendChild(dummy);
-            dummy.value = email;
-            dummy.select();
-            document.execCommand('copy');
-            document.body.removeChild(dummy);
+        document.addEventListener('DOMContentLoaded', () => {
 
-            const successMessage = document.getElementById('copySuccess');
-            successMessage.style.display = 'block';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 2000);
-        }
+            // --- INTEGRATION 3: ADDED THE JAVASCRIPT LOGIC FOR THE NEW BUTTON ---
+            const emailButton = document.getElementById('emailButton');
+            const emailInput = document.getElementById('emailInput');
+            const copySuccessMessage = document.getElementById('copySuccessMessage');
+            const emailAddress = 'alina.strelkovskaia@mind-map.tech';
 
-        // Fade-in animation on scroll
-        const faders = document.querySelectorAll('.fade-in-section');
-        const appearOptions = {
-            threshold: 0.15,
-            rootMargin: "0px 0px -50px 0px"
-        };
-        const appearOnScroll = new IntersectionObserver(function(entries, appearOnScroll) {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) {
-                    return;
-                } else {
-                    entry.target.classList.add('is-visible');
-                    appearOnScroll.unobserve(entry.target);
-                }
+            if (emailButton) {
+                emailButton.addEventListener('click', () => {
+                    // Modern Clipboard API
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(emailAddress).then(() => {
+                            showSuccessMessage();
+                            triggerMailto();
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        emailInput.select();
+                        document.execCommand('copy');
+                        showSuccessMessage();
+                        triggerMailto();
+                    }
+                });
+            }
+
+            function showSuccessMessage() {
+                if (!copySuccessMessage) return;
+                copySuccessMessage.classList.remove('hidden', 'fade-in-out');
+                void copySuccessMessage.offsetWidth; // Trigger a reflow
+                copySuccessMessage.classList.add('fade-in-out');
+            }
+
+            function triggerMailto() {
+                window.location.href = 'mailto:' + emailAddress;
+            }
+
+
+            // --- Your existing fade-in animation code ---
+            const faders = document.querySelectorAll('.fade-in-section');
+            const appearOptions = {
+                threshold: 0.15,
+                rootMargin: "0px 0px -50px 0px"
+            };
+            const appearOnScroll = new IntersectionObserver(function(entries, appearOnScroll) {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    } else {
+                        entry.target.classList.add('is-visible');
+                        appearOnScroll.unobserve(entry.target);
+                    }
+                });
+            }, appearOptions);
+
+            faders.forEach(fader => {
+                appearOnScroll.observe(fader);
             });
-        }, appearOptions);
-
-        faders.forEach(fader => {
-            appearOnScroll.observe(fader);
         });
     </script>
 </body>
