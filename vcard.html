@@ -104,21 +104,23 @@
         </div>
     </div>
 
-    <script>
+   <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- PDF Download Logic ---
             const downloadPdfBtn = document.getElementById('downloadPdfBtn');
             const cardToPrint = document.getElementById('business-card');
             
             downloadPdfBtn.addEventListener('click', () => {
+                // --- MODIFIED OPTIONS FOR BETTER PDF GENERATION ---
                 const opt = {
-                    margin:       0.5,
+                    margin:       0.1, // Reduced margin to prevent overflow
                     filename:     'Alina_Strelkovskaia_Business_Card.pdf',
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true }, // Higher scale for better quality
-                    jsPDF:        { unit: 'in', format: [3.5, 2], orientation: 'landscape' } // Standard business card size
+                    html2canvas:  { scale: 2, useCORS: true, logging: false },
+                    jsPDF:        { unit: 'in', format: [3.5, 2], orientation: 'landscape' },
+                    // This option treats the element as a single, unbreakable image
+                    pagebreak:    { mode: 'avoid-all' } 
                 };
-                // Use the html2pdf library to generate the PDF from the card element
                 html2pdf().from(cardToPrint).set(opt).save();
             });
 
@@ -152,6 +154,7 @@
 </body>
 
 </html>
+
 
 
 
