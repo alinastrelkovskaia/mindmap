@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alina Strelkovskaia - Digital Business Card</title>
-    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +51,6 @@
 </head>
 <body class="bg-brand-bg text-brand-dark flex items-center justify-center min-h-screen p-4">
 
-    <!-- This is the main container for the business card content. It's what will be converted to PDF. -->
     <div id="business-card-container" class="w-full max-w-md mx-auto">
         <div id="business-card" class="bg-white/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/50">
             <div class="text-center">
@@ -63,7 +61,6 @@
 
             <div class="my-8 border-t border-slate-200"></div>
 
-            <!-- Clickable Links with SVG Icons -->
             <div class="space-y-4 text-center">
                 <a href="https://mind-map.tech" target="_blank" class="flex items-center justify-center space-x-3 text-brand-gray hover:text-brand-dark transition-colors group">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.004 9.004 0 013 12c0-1.631.427-3.16.97-4.418" /></svg>
@@ -87,16 +84,13 @@
                  <button id="emailButton" class="w-full bg-brand-dark text-white px-6 py-3 rounded-full font-semibold hover:bg-black transition-colors mb-3">
                     Copy email
                  </button>
-                 <!-- Hidden input for the copy-to-clipboard functionality -->
                  <input type="text" value="alina.strelkovskaia@mind-map.tech" id="emailInput" class="absolute" style="left: -9999px; top: -9999px;" aria-hidden="true" tabindex="-1">
-                 <!-- Success message for the copy action -->
                  <div id="copySuccessMessage" class="hidden absolute -bottom-8 left-1/2 -translate-x-1/2 bg-brand-dark text-white text-sm font-medium py-1 px-3 rounded-md">
                     Email copied!
                  </div>
             </div>
         </div>
 
-        <!-- Download button is outside the main card so it doesn't appear in the PDF -->
         <div class="text-center mt-6">
             <button id="downloadPdfBtn" class="bg-white/80 backdrop-blur-lg text-brand-dark px-6 py-3 rounded-full font-semibold hover:bg-white transition-colors border border-slate-200">
                 Download as PDF
@@ -106,19 +100,18 @@
 
    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            --- PDF Download Logic ---
+            // --- FIX: The complete and correct JavaScript logic has been restored ---
+
+            // --- PDF Download Logic ---
             const downloadPdfBtn = document.getElementById('downloadPdfBtn');
             const cardToPrint = document.getElementById('business-card');
             
             downloadPdfBtn.addEventListener('click', () => {
-                // --- MODIFIED OPTIONS FOR BETTER PDF GENERATION ---
                 const opt = {
                     margin:       0,
                     filename:     'Alina_Strelkovskaia_Business_Card.pdf',
                     image:        { type: 'jpeg', quality: 1.0 },
                     html2canvas:  { scale: 3, useCORS: true, logging: false },
-                    // By setting the format to the element's size and enabling links,
-                    // we get a high-fidelity, single-page, interactive PDF.
                     jsPDF:        { unit: 'px', format: 'auto', orientation: 'portrait', hotfixes: ["px_scaling"], enableLinks: true }
                 };
                 html2pdf().from(cardToPrint).set(opt).save();
@@ -130,10 +123,8 @@
             const emailAddress = 'alina.strelkovskaia@mind-map.tech';
 
             emailButton.addEventListener('click', () => {
-                // Use the modern Clipboard API
                 navigator.clipboard.writeText(emailAddress).then(() => {
                     showSuccessMessage();
-                    // Attempt to open the mail client after a short delay
                     setTimeout(() => {
                         window.location.href = 'mailto:' + emailAddress;
                     }, 500);
@@ -144,19 +135,11 @@
 
             function showSuccessMessage() {
                 if (!copySuccessMessage) return;
-                // Use a class to trigger the CSS animation
                 copySuccessMessage.classList.remove('hidden', 'fade-in-out');
-                void copySuccessMessage.offsetWidth; // This is a trick to trigger a browser reflow
+                void copySuccessMessage.offsetWidth;
                 copySuccessMessage.classList.add('fade-in-out');
             }
         });
     </script>
 </body>
-
 </html>
-
-
-
-
-
-
