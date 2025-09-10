@@ -57,7 +57,7 @@
         <div id="business-card" class="bg-white/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/50">
             <div class="text-center">
                 <img src="photo.jpg" alt="Alina Strelkovskaia" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-lg">
-                <h1 class="text-3xl font-bold text-brand-dark font-serif">Alina Strelkovskaia</h1>
+                <h1 class="text-3xl font-bold text-brand-dark">Alina Strelkovskaia</h1>
                 <p class="text-brand-gold font-semibold text-lg mt-1">Digital Learning Strategist</p>
             </div>
 
@@ -113,13 +113,12 @@
             downloadPdfBtn.addEventListener('click', () => {
                 // --- MODIFIED OPTIONS FOR BETTER PDF GENERATION ---
                 const opt = {
-                    margin:       0.1, // Reduced margin to prevent overflow
+                    margin:       0.1,
                     filename:     'Alina_Strelkovskaia_Business_Card.pdf',
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, logging: false },
-                    jsPDF:        { unit: 'in', format: [3.5, 2], orientation: 'landscape' },
-                    // This option treats the element as a single, unbreakable image
-                    pagebreak:    { mode: 'avoid-all' } 
+                    html2canvas:  { scale: 2, useCORS: true },
+                    // By removing the fixed format, the PDF will size itself to the content.
+                    jsPDF:        { unit: 'in', orientation: 'portrait' } 
                 };
                 html2pdf().from(cardToPrint).set(opt).save();
             });
@@ -154,6 +153,7 @@
 </body>
 
 </html>
+
 
 
 
