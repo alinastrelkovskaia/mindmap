@@ -106,19 +106,20 @@
 
    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- PDF Download Logic ---
+            --- PDF Download Logic ---
             const downloadPdfBtn = document.getElementById('downloadPdfBtn');
             const cardToPrint = document.getElementById('business-card');
             
             downloadPdfBtn.addEventListener('click', () => {
                 // --- MODIFIED OPTIONS FOR BETTER PDF GENERATION ---
                 const opt = {
-                    margin:       0.1,
+                    margin:       0,
                     filename:     'Alina_Strelkovskaia_Business_Card.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true },
-                    // By removing the fixed format, the PDF will size itself to the content.
-                    jsPDF:        { unit: 'in', orientation: 'portrait' } 
+                    image:        { type: 'jpeg', quality: 1.0 },
+                    html2canvas:  { scale: 3, useCORS: true, logging: false },
+                    // By setting the format to the element's size and enabling links,
+                    // we get a high-fidelity, single-page, interactive PDF.
+                    jsPDF:        { unit: 'px', format: 'auto', orientation: 'portrait', hotfixes: ["px_scaling"], enableLinks: true }
                 };
                 html2pdf().from(cardToPrint).set(opt).save();
             });
@@ -153,6 +154,7 @@
 </body>
 
 </html>
+
 
 
 
