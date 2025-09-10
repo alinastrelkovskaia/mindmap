@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alina Strelkovskaia - Digital Business Card</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- This library is for generating the PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                        'serif': ['Lora', 'serif'],
+                    },
+                    colors: {
+                        'brand-bg': '#FFFFFF',
+                        'brand-dark': '#1A1A1A',
+                        'brand-gold': '#B0926A',
+                        'brand-light': '#F5F5F5',
+                        'brand-gray': '#6B6B6B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF;
+            background-image: url('backgroundnew.png');
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(10px); }
+        }
+        .fade-in-out {
+            animation: fadeInOut 2s ease-in-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-brand-bg text-brand-dark flex items-center justify-center min-h-screen p-4">
+
+    <!-- This is the main container for the business card content. It's what will be converted to PDF. -->
+    <div id="business-card-container" class="w-full max-w-md mx-auto">
+        <div id="business-card" class="bg-white/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/50">
+            <div class="text-center">
+                <img src="https://raw.githubusercontent.com/google/generative-ai-docs/main/site/en/tutorials/prompting/images/photo.jpg" alt="Alina Strelkovskaia" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-lg">
+                <h1 class="text-3xl font-bold text-brand-dark font-serif">Alina Strelkovskaia</h1>
+                <p class="text-brand-gold font-semibold text-lg mt-1">Digital Learning Strategist</p>
+            </div>
+
+            <div class="my-8 border-t border-slate-200"></div>
+
+            <!-- Clickable Links with SVG Icons -->
+            <div class="space-y-4 text-center">
+                <a href="https://mind-map.tech" target="_blank" class="flex items-center justify-center space-x-3 text-brand-gray hover:text-brand-dark transition-colors group">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.004 9.004 0 013 12c0-1.631.427-3.16.97-4.418" /></svg>
+                    <span class="font-semibold group-hover:underline">mind-map.tech</span>
+                </a>
+                 <a href="https://www.linkedin.com/in/alinastrelkovskaia/" target="_blank" class="flex items-center justify-center space-x-3 text-brand-gray hover:text-brand-dark transition-colors group">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.25 6.5 1.75 1.75 0 016.5 8.25zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.1 1.16 3.1 3.36z"></path></svg>
+                    <span class="font-semibold group-hover:underline">LinkedIn</span>
+                </a>
+                 <a href="https://alinastrelkovskaia.substack.com/" target="_blank" class="flex items-center justify-center space-x-3 text-brand-gray hover:text-brand-dark transition-colors group">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22.539 8.242H1.46V3.53h21.08v4.712zM1.46 10.352h21.08v10.118H1.46V10.352z"></path>
+                    </svg>
+                    <span class="font-semibold group-hover:underline">Industry writings</span>
+                </a>
+            </div>
+
+            <div class="my-8 border-t border-slate-200"></div>
+
+            <div class="relative text-center">
+                 <button id="emailButton" class="w-full bg-brand-dark text-white px-6 py-3 rounded-full font-semibold hover:bg-black transition-colors mb-3">
+                    Copy Email & Contact
+                 </button>
+                 <!-- Hidden input for the copy-to-clipboard functionality -->
+                 <input type="text" value="alina.strelkovskaia@mind-map.tech" id="emailInput" class="absolute" style="left: -9999px; top: -9999px;" aria-hidden="true" tabindex="-1">
+                 <!-- Success message for the copy action -->
+                 <div id="copySuccessMessage" class="hidden absolute -bottom-8 left-1/2 -translate-x-1/2 bg-brand-dark text-white text-sm font-medium py-1 px-3 rounded-md">
+                    Email copied!
+                 </div>
+            </div>
+        </div>
+
+        <!-- Download button is outside the main card so it doesn't appear in the PDF -->
+        <div class="text-center mt-6">
+            <button id="downloadPdfBtn" class="bg-white/80 backdrop-blur-lg text-brand-dark px-6 py-3 rounded-full font-semibold hover:bg-white transition-colors border border-slate-200">
+                Download as PDF
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- PDF Download Logic ---
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            const cardToPrint = document.getElementById('business-card');
+            
+            downloadPdfBtn.addEventListener('click', () => {
+                const opt = {
+                    margin:       0.5,
+                    filename:     'Alina_Strelkovskaia_Business_Card.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true }, // Higher scale for better quality
+                    jsPDF:        { unit: 'in', format: [3.5, 2], orientation: 'landscape' } // Standard business card size
+                };
+                // Use the html2pdf library to generate the PDF from the card element
+                html2pdf().from(cardToPrint).set(opt).save();
+            });
+
+            // --- Copy Email & Contact Logic ---
+            const emailButton = document.getElementById('emailButton');
+            const copySuccessMessage = document.getElementById('copySuccessMessage');
+            const emailAddress = 'alina.strelkovskaia@mind-map.tech';
+
+            emailButton.addEventListener('click', () => {
+                // Use the modern Clipboard API
+                navigator.clipboard.writeText(emailAddress).then(() => {
+                    showSuccessMessage();
+                    // Attempt to open the mail client after a short delay
+                    setTimeout(() => {
+                        window.location.href = 'mailto:' + emailAddress;
+                    }, 500);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            });
+
+            function showSuccessMessage() {
+                if (!copySuccessMessage) return;
+                // Use a class to trigger the CSS animation
+                copySuccessMessage.classList.remove('hidden', 'fade-in-out');
+                void copySuccessMessage.offsetWidth; // This is a trick to trigger a browser reflow
+                copySuccessMessage.classList.add('fade-in-out');
+            }
+        });
+    </script>
+</body>
+</html>
