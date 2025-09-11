@@ -44,4 +44,368 @@
                  <div id="table-filter-buttons" class="flex-shrink-0 flex items-center gap-2">
                     <button data-filter="all" class="table-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-blue-700 text-white">All</button>
                     <button data-filter="attention" class="table-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">Needs Attention</button>
-                    <button data-filter="talking" class="table-filter-btn px-3
+                    <button data-filter="talking" class="table-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">Talking</button>
+                    <button data-filter="client" class="table-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">Clients</button>
+                </div>
+                <div class="flex items-center gap-4 w-full sm:w-auto">
+                    <input type="text" id="search-input" placeholder="Search companies..." class="w-full sm:w-64 px-3 py-1.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                     <button id="add-company-btn" class="bg-blue-600 text-white font-semibold py-1.5 px-4 rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap">+ Add Company</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="name">Company</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="tier">Tier</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="stage">Overall Stage</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="attentionNeeded">Attention</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="lastContact">Last Contact</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companies-table-body"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="company-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50 opacity-0">
+        <div id="modal-content" class="modal-content bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+             <div class="flex justify-between items-center p-6 border-b">
+                <h2 id="modal-title" class="text-2xl font-bold text-slate-800">Company Details</h2>
+                <button id="close-modal-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button>
+             </div>
+             <div id="modal-body" class="overflow-y-auto p-6"></div>
+             <div class="p-6 border-t bg-slate-50 flex justify-between items-center">
+                <button type="button" id="delete-company-btn" class="text-red-600 hover:text-red-800 font-semibold">Delete Company</button>
+                <button type="button" id="save-company-btn" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700">Save Changes</button>
+             </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, addDoc, deleteDoc, writeBatch, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmLIojavz7ffqu3pdrIyZoer6dJ7HNg-c",
+            authDomain: "mindmap-scc.firebaseapp.com",
+            projectId: "mindmap-scc",
+            storageBucket: "mindmap-scc.firebasestorage.app",
+            messagingSenderId: "449001010150",
+            appId: "1:449001010150:web:f20c8372ebdb55d3e25c27",
+            measurementId: "G-6VS81GXRJV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- GLOBAL STATE ---
+        const PERSON_STAGES = ['To Contact', 'Contacted', 'In Conversation', 'Client', 'Rejected'];
+        let companies = [];
+        let people = [];
+        let sortState = { key: 'name', asc: true };
+        let activeTableFilter = 'all';
+        let activeTimePeriod = 30;
+
+        // --- DOM ELEMENTS ---
+        const analyticsDashboard = document.getElementById('analytics-cards');
+        const tableBody = document.getElementById('companies-table-body');
+        const searchInput = document.getElementById('search-input');
+        const modal = document.getElementById('company-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalBody = document.getElementById('modal-body');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const addCompanyBtn = document.getElementById('add-company-btn');
+        const saveCompanyBtn = document.getElementById('save-company-btn');
+        const deleteCompanyBtn = document.getElementById('delete-company-btn');
+        const timeFilterButtons = document.getElementById('time-filter-buttons');
+        const tableFilterButtons = document.getElementById('table-filter-buttons');
+
+        // --- REAL-TIME DATA LISTENERS ---
+        onSnapshot(collection(db, "companies"), snapshot => {
+            companies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderAll();
+        });
+        onSnapshot(collection(db, "people"), snapshot => {
+            people = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderAll();
+        });
+
+        // --- CORE RENDER FUNCTIONS ---
+        function renderAll() {
+            renderTable();
+            renderAnalytics();
+        }
+
+        function renderTable() {
+            tableBody.innerHTML = '';
+            const searchTerm = searchInput.value.toLowerCase();
+            const augmentedCompanies = companies.map(augmentCompanyData);
+            
+            let filteredCompanies = augmentedCompanies
+                .filter(c => c.name.toLowerCase().includes(searchTerm))
+                .filter(c => {
+                    if (activeTableFilter === 'all') return true;
+                    if (activeTableFilter === 'attention') return c.attentionNeeded;
+                    const stageKey = c.stage.toLowerCase().replace(/ /g, '');
+                    if (activeTableFilter === 'clients') return stageKey === 'client';
+                    return stageKey === 'talking' && (stageKey === activeTableFilter || c.stage === 'In Conversation');
+                });
+            
+            // Sorting logic...
+            
+            if (filteredCompanies.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-slate-500">No companies match your filters.</td></tr>`;
+                return;
+            }
+
+            filteredCompanies.forEach(company => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b table-row-hover';
+                row.dataset.id = company.id;
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">${company.name}</td>
+                    <td class="px-6 py-4 text-center">${company.tier}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getStageBadgeColor(company.stage)}">${company.stage}</span></td>
+                    <td class="px-6 py-4 text-center">${company.attentionNeeded ? '<span class="text-amber-500 font-bold">●</span>' : '<span class="text-slate-300">-</span>'}</td>
+                    <td class="px-6 py-4">${company.lastContact || 'N/A'}</td>
+                `;
+                row.addEventListener('click', () => openModal(company.id));
+                tableBody.appendChild(row);
+            });
+        }
+
+        // CTO NOTE: Metrics are back online, powered by real-time data.
+        function renderAnalytics() {
+            analyticsDashboard.innerHTML = '';
+            const allLogs = people.flatMap(p => p.log || []);
+            const logsInPeriod = allLogs.filter(log => {
+                if (activeTimePeriod === 'all') return true;
+                const logDate = new Date(log.date);
+                const periodStartDate = new Date();
+                periodStartDate.setDate(periodStartDate.getDate() - activeTimePeriod);
+                return logDate >= periodStartDate;
+            });
+            const outreach = logsInPeriod.filter(l => l.type === 'outreach').length;
+            const responses = logsInPeriod.filter(l => l.type === 'response').length;
+            const rate = outreach > 0 ? ((responses / outreach) * 100).toFixed(1) : 0;
+            const stats = [
+                { label: 'Total Companies', value: companies.length },
+                { label: `Outreach (${activeTimePeriod}D)`, value: outreach },
+                { label: `Responses (${activeTimePeriod}D)`, value: responses },
+                { label: `Response Rate`, value: `${rate}%` }
+            ];
+            stats.forEach(stat => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-4 rounded-lg shadow-sm border border-slate-200';
+                card.innerHTML = `<div class="text-sm font-medium text-slate-500">${stat.label}</div><div class="mt-1 text-3xl font-semibold text-slate-900">${stat.value}</div>`;
+                analyticsDashboard.appendChild(card);
+            });
+        }
+
+        // --- DATA LOGIC & UTILITIES ---
+        function augmentCompanyData(company) {
+            const companyPeople = people.filter(p => p.companyId === company.id);
+            const allLogs = companyPeople.flatMap(p => p.log || []);
+            allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const lastLog = allLogs.length > 0 ? allLogs[0] : null;
+            const daysSince = lastLog ? (new Date() - new Date(lastLog.date)) / (1000 * 60 * 60 * 24) : Infinity;
+
+            const stage = getCompanyOverallStage(companyPeople, daysSince, lastLog?.type === 'outreach');
+            let attentionNeeded = false;
+            if (stage === 'Talking' && daysSince > 7) attentionNeeded = true;
+            if (stage === 'Void' && daysSince <= 30) attentionNeeded = true;
+            
+            return { ...company, stage, lastContact: lastLog?.date || null, attentionNeeded };
+        }
+
+        function getCompanyOverallStage(companyPeople, daysSince, lastLogIsOutreach) {
+            const stages = new Set(companyPeople.map(p => p.stage));
+            if (stages.has('Client')) return 'Client';
+            if (companyPeople.every(p => p.stage === 'Rejected')) return 'Rejection';
+            if (stages.has('In Conversation') || stages.has('Contacted')) {
+                if (lastLogIsOutreach && daysSince > 14) return 'Void';
+                return 'Talking';
+            }
+            return 'Explore';
+        }
+
+        function getStageBadgeColor(stage) {
+            const colors = { 'Explore':'bg-slate-200 text-slate-800', 'Talking':'bg-sky-200 text-sky-800', 'Client':'bg-green-200 text-green-800', 'Rejection':'bg-red-200 text-red-800', 'Void':'bg-gray-200 text-gray-800' };
+            return colors[stage] || 'bg-slate-200 text-slate-800';
+        }
+
+        // --- MODAL & FORM HANDLING ---
+        function openModal(companyId) {
+            const company = companyId ? companies.find(c => c.id === companyId) : {};
+            document.getElementById('modal-title').textContent = companyId ? `Edit: ${company.name}` : 'Add New Company';
+            deleteCompanyBtn.style.display = companyId ? 'block' : 'none';
+            
+            modalBody.innerHTML = `
+                <form id="company-form">
+                    <input type="hidden" id="company-id" value="${companyId || ''}">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div><label class="block text-sm font-medium text-slate-700">Company</label><input type="text" id="company-name" class="mt-1 block w-full rounded-md" value="${company.name || ''}"></div>
+                        <div><label class="block text-sm font-medium text-slate-700">Tier</label><select id="tier" class="mt-1 block w-full rounded-md">${[1,2,3].map(t => `<option ${t === company.tier ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+                        <div><label class="block text-sm font-medium text-slate-700">Sector</label><input type="text" id="sector" class="mt-1 block w-full rounded-md" value="${company.sector || ''}"></div>
+                    </div>
+                    <div><label class="block text-sm font-medium text-slate-700">Rationale</label><textarea id="rationale" rows="3" class="mt-1 block w-full rounded-md">${company.rationale || ''}</textarea></div>
+                </form>
+                <hr class="my-6">
+                <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-slate-800">People</h3><button id="add-person-btn" class="text-sm bg-slate-200 font-semibold py-1 px-3 rounded-md">+ Add Person</button></div>
+                <div id="people-list" class="space-y-2"></div>`;
+            
+            renderPeopleInModal(companyId);
+
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // CTO NOTE: The fully featured modal logic from the prototype is now integrated and connected to Firebase.
+        function renderPeopleInModal(companyId) {
+            const peopleList = document.getElementById('people-list');
+            if (!peopleList) return;
+            peopleList.innerHTML = '';
+            const companyPeople = people.filter(p => p.companyId === companyId);
+            if (companyPeople.length === 0) {
+                peopleList.innerHTML = `<p class="text-sm text-slate-500 p-2">No people added yet.</p>`; return;
+            }
+            companyPeople.forEach(person => {
+                const details = document.createElement('details');
+                details.className = 'person-accordion bg-white border rounded-lg';
+                details.innerHTML = `
+                    <summary class="p-4 cursor-pointer font-semibold flex justify-between"><span>${person.name} - <em class="font-normal">${person.title}</em></span><span class="px-2 py-1 text-xs rounded-full">${person.stage}</span></summary>
+                    <div class="p-4 border-t bg-slate-50">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                            <div><label class="text-sm">Name</label><input type="text" value="${person.name}" data-person-id="${person.id}" data-field="name" class="person-edit-field mt-1 w-full rounded-md"></div>
+                            <div><label class="text-sm">Title</label><input type="text" value="${person.title}" data-person-id="${person.id}" data-field="title" class="person-edit-field mt-1 w-full rounded-md"></div>
+                            <div><label class="text-sm">Stage</label><select data-person-id="${person.id}" data-field="stage" class="person-edit-field mt-1 w-full rounded-md">${PERSON_STAGES.map(s => `<option value="${s}" ${s === person.stage ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+                        </div>
+                        <hr class="my-4"><h4 class="font-semibold mb-2">Contact Log</h4>
+                        <div class="contact-log-entries space-y-2 mb-4 max-h-40 overflow-y-auto p-2 bg-white rounded-md border"></div>
+                        <div class="p-3 bg-slate-100 rounded-md"><h5 class="text-sm font-semibold mb-2">Add Log Entry</h5>
+                            <div class="grid grid-cols-2 gap-2 mb-2"><select class="log-input-${person.id}" data-field="channel"><option>LinkedIn</option><option>Email</option><option>Call</option></select><select class="log-input-${person.id}" data-field="type"><option value="outreach">Outreach</option><option value="response">Response</option></select></div>
+                            <textarea class="log-input-${person.id} w-full text-sm rounded-md" data-field="notes" rows="2" placeholder="Notes..."></textarea>
+                            <div class="text-right mt-2"><button type="button" class="add-person-log-btn text-xs bg-slate-200 font-semibold py-1 px-2 rounded" data-person-id="${person.id}">Add Log</button></div>
+                        </div>
+                    </div>`;
+                peopleList.appendChild(details);
+                const logContainer = details.querySelector('.contact-log-entries');
+                if (person.log?.length > 0) {
+                    [...person.log].reverse().forEach(entry => {
+                        const logDiv = document.createElement('div');
+                        logDiv.className = `p-1.5 border rounded text-xs ${entry.type === 'response' ? 'border-blue-300' : 'border-slate-200'}`;
+                        logDiv.innerHTML = `<p class="font-semibold">${entry.channel} <span class="font-normal">- ${entry.date}</span></p><p>${entry.notes}</p>`;
+                        logContainer.appendChild(logDiv);
+                    });
+                } else {
+                    logContainer.innerHTML = `<p class="text-xs text-slate-500 p-1">No log entries.</p>`;
+                }
+            });
+        }
+        
+        // --- ASYNC FIRESTORE CRUD OPERATIONS ---
+        async function handleSaveChanges() {
+            const companyId = document.getElementById('company-id').value;
+            const formData = {
+                name: document.getElementById('company-name').value,
+                tier: parseInt(document.getElementById('tier').value),
+                sector: document.getElementById('sector').value,
+                rationale: document.getElementById('rationale').value,
+            };
+            try {
+                if (companyId) await setDoc(doc(db, "companies", companyId), formData, { merge: true });
+                else await addDoc(collection(db, "companies"), formData);
+                closeModal();
+            } catch (e) { console.error("Error saving company:", e); }
+        }
+        
+        async function handleDeleteCompany() {
+            const companyId = document.getElementById('company-id').value;
+            if (!companyId || !confirm('Delete this company and all its people?')) return;
+            try {
+                const batch = writeBatch(db);
+                const associatedPeople = people.filter(p => p.companyId === companyId);
+                associatedPeople.forEach(p => batch.delete(doc(db, "people", p.id)));
+                batch.delete(doc(db, "companies", companyId));
+                await batch.commit();
+                closeModal();
+            } catch(e) { console.error("Error deleting company:", e); }
+        }
+
+        async function handleAddPerson(companyId) {
+            const personName = prompt("Enter new person's name:");
+            if (!personName?.trim()) return;
+            const newPerson = {
+                companyId, name: personName.trim(), title: 'New Contact', stage: 'To Contact', log: []
+            };
+            try { await addDoc(collection(db, "people"), newPerson); }
+            catch(e) { console.error("Error adding person:", e); }
+        }
+
+        async function handleUpdatePerson(personId, field, value) {
+            try { await setDoc(doc(db, "people", personId), { [field]: value }, { merge: true }); }
+            catch(e) { console.error("Error updating person:", e); }
+        }
+
+        async function handleAddLog(personId, newLogEntry) {
+            try { await setDoc(doc(db, "people", personId), { log: arrayUnion(newLogEntry) }, { merge: true }); }
+            catch(e) { console.error("Error adding log:", e); }
+        }
+
+        // --- EVENT LISTENERS ---
+        addCompanyBtn.addEventListener('click', () => openModal(null));
+        closeModalBtn.addEventListener('click', closeModal);
+        saveCompanyBtn.addEventListener('click', handleSaveChanges);
+        deleteCompanyBtn.addEventListener('click', handleDeleteCompany);
+        searchInput.addEventListener('input', renderTable);
+        timeFilterButtons.addEventListener('click', e => {
+            if(e.target.tagName !== 'BUTTON') return;
+            activeTimePeriod = e.target.dataset.period === 'all' ? 'all' : parseInt(e.target.dataset.period);
+            document.querySelectorAll('.time-filter-btn').forEach(btn => btn.classList.remove('filter-btn-active'));
+            e.target.classList.add('filter-btn-active');
+            renderAnalytics();
+        });
+        tableFilterButtons.addEventListener('click', e => {
+            if (e.target.tagName !== 'BUTTON') return;
+            activeTableFilter = e.target.dataset.filter;
+            document.querySelectorAll('.table-filter-btn').forEach(btn => {
+                btn.classList.remove('filter-btn-active', 'bg-blue-700', 'text-white');
+                btn.classList.add('bg-white', 'border-slate-300');
+            });
+            e.target.classList.add('filter-btn-active', 'bg-blue-700', 'text-white');
+            e.target.classList.remove('bg-white');
+            renderTable();
+        });
+        
+        // CTO NOTE: Delegated event listeners for the modal content are more efficient.
+        modalBody.addEventListener('click', e => {
+            if (e.target.id === 'add-person-btn') {
+                const companyId = document.getElementById('company-id').value;
+                if (companyId) handleAddPerson(companyId);
+            }
+            if (e.target.classList.contains('add-person-log-btn')) {
+                const personId = e.target.dataset.personId;
+                const inputs = document.querySelectorAll(`.log-input-${personId}`);
+                const newLogEntry = { date: new Date().toISOString().split('T')[0] };
+                inputs.forEach(input => newLogEntry[input.dataset.field] = input.value);
+                handleAddLog(personId, newLogEntry);
+            }
+        });
+        modalBody.addEventListener('change', e => {
+            if (e.target.classList.contains('person-edit-field')) {
+                const { personId, field } = e.target.dataset;
+                handleUpdatePerson(personId, field, e.target.value);
+            }
+        });
+
+    </script>
+</body>
+</html>
