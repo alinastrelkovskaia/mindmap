@@ -237,36 +237,45 @@
         }
 
         // --- MODAL & FORM HANDLING ---
-        function openModal(companyId) {
-            const company = companyId ? companies.find(c => c.id === companyId) : {};
-            document.getElementById('modal-title').textContent = companyId ? `Edit: ${company.name}` : 'Add New Company';
-            deleteCompanyBtn.style.display = companyId ? 'block' : 'none';
-            
-            modalBody.innerHTML = `
-                <form id="company-form">
-                    <input type="hidden" id="company-id" value="${companyId || ''}">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div><label class="block text-sm font-medium text-slate-700">Company</label><input type="text" id="company-name" class="mt-1 block w-full rounded-md" value="${company.name || ''}"></div>
-                        <div><label class="block text-sm font-medium text-slate-700">Tier</label><select id="tier" class="mt-1 block w-full rounded-md">${[1,2,3].map(t => `<option ${t === company.tier ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-                        <div><label class="block text-sm font-medium text-slate-700">Sector</label><input type="text" id="sector" class="mt-1 block w-full rounded-md" value="${company.sector || ''}"></div>
-                    </div>
-                    <div><label class="block text-sm font-medium text-slate-700">Rationale</label><textarea id="rationale" rows="3" class="mt-1 block w-full rounded-md">${company.rationale || ''}</textarea></div>
-                </form>
-                <hr class="my-6">
-                <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-slate-800">People</h3><button id="add-person-btn" class="text-sm bg-slate-200 font-semibold py-1 px-3 rounded-md">+ Add Person</button></div>
-                <div id="people-list" class="space-y-2"></div>`;
-            
+    function openModal(companyId) {
+        const company = companyId ? companies.find(c => c.id === companyId) : {};
+        document.getElementById('modal-title').textContent = companyId ? `Edit: ${company.name}` : 'Add New Company';
+        deleteCompanyBtn.style.display = companyId ? 'block' : 'none';
+        
+        // --- CHANGE IS HERE ---
+        // Conditionally create the HTML for the people section.
+        const peopleSectionHTML = companyId 
+            ? ` <hr class="my-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-slate-800">People</h3>
+                    <button id="add-person-btn" class="text-sm bg-slate-200 font-semibold py-1 px-3 rounded-md">+ Add Person</button>
+                </div>
+                <div id="people-list" class="space-y-2"></div>`
+            : ` <hr class="my-6">
+                <div class="p-4 bg-slate-100 rounded-md text-center text-sm text-slate-600">
+                    Please save the company first to add people.
+                </div>`;
+
+        modalBody.innerHTML = `
+            <form id="company-form">
+                <input type="hidden" id="company-id" value="${companyId || ''}">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div><label class="block text-sm font-medium text-slate-700">Company</label><input type="text" id="company-name" class="mt-1 block w-full rounded-md" value="${company.name || ''}"></div>
+                    <div><label class="block text-sm font-medium text-slate-700">Tier</label><select id="tier" class="mt-1 block w-full rounded-md">${[1,2,3].map(t => `<option ${t === company.tier ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+                    <div><label class="block text-sm font-medium text-slate-700">Sector</label><input type="text" id="sector" class="mt-1 block w-full rounded-md" value="${company.sector || ''}"></div>
+                </div>
+                <div><label class="block text-sm font-medium text-slate-700">Rationale</label><textarea id="rationale" rows="3" class="mt-1 block w-full rounded-md">${company.rationale || ''}</textarea></div>
+            </form>
+            ${peopleSectionHTML}`; // Use the conditional HTML here
+        
+        // Only try to render people if the company exists
+        if (companyId) {
             renderPeopleInModal(companyId);
-
-            modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
         }
 
-        function closeModal() {
-            modal.classList.add('opacity-0');
-            modalContent.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
+        modal.classList.remove('hidden');
+        setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
+    }
 
         // CTO NOTE: The fully featured modal logic from the prototype is now integrated and connected to Firebase.
         function renderPeopleInModal(companyId) {
@@ -409,5 +418,6 @@
     </script>
 </body>
 </html>
+
 
 
