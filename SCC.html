@@ -387,10 +387,12 @@
         
         // CTO NOTE: Delegated event listeners for the modal content are more efficient.
         modalBody.addEventListener('click', e => {
-            if (e.target.id === 'add-person-btn') {
-                const companyId = document.getElementById('company-id').value;
-                if (companyId) handleAddPerson(companyId);
-            }
+    if (e.target.id === 'add-person-btn') {
+        const companyId = document.getElementById('company-id').value;
+        handleAddPerson(companyId);
+    }
+});
+
             if (e.target.classList.contains('add-person-log-btn')) {
                 const personId = e.target.dataset.personId;
                 const inputs = document.querySelectorAll(`.log-input-${personId}`);
@@ -409,3 +411,4 @@
     </script>
 </body>
 </html>
+
