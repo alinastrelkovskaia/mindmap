@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategic CRM Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for analytics visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .table-row-hover:hover {
+            background-color: #e2e8f0; /* slate-200 */
+            cursor: pointer;
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        .person-accordion details[open] summary {
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .filter-btn-active {
+            background-color: #1e3a8a; /* blue-800 */
+            color: white;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+
+    <div id="app" class="max-w-screen-2xl mx-auto">
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold text-slate-800">Strategic Command Centre</h1>
+            <p class="text-slate-500">A high-level overview of your client development pipeline.</p>
+        </header>
+
+        <!-- 1. The Command Centre (Analytics First) -->
+        <section id="analytics-dashboard" class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-slate-800">Performance Metrics</h2>
+                <div id="time-filter-buttons" class="flex items-center gap-2">
+                    <button data-period="7" class="time-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">7D</button>
+                    <button data-period="30" class="time-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300 filter-btn-active">30D</button>
+                    <button data-period="90" class="time-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">90D</button>
+                    <button data-period="all" class="time-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">All</button>
+                </div>
+            </div>
+            <div id="analytics-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- 2. The Master Table View -->
+        <main id="table-view" class="bg-white rounded-lg shadow-sm border border-slate-200">
+            <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                 <div id="table-filter-buttons" class="flex-shrink-0 flex items-center gap-2">
+                    <button data-filter="all" class="table-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-blue-700 text-white">All</button>
+                    <button data-filter="attention" class="table-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">Needs Attention</button>
+                    <button data-filter="talking" class="table-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">Talking</button>
+                    <button data-filter="client" class="table-filter-btn px-3 py-1 text-sm font-semibold rounded-md bg-white border border-slate-300">Clients</button>
+                </div>
+                <div class="flex items-center gap-4 w-full sm:w-auto">
+                    <input type="text" id="search-input" placeholder="Search companies..." class="w-full sm:w-64 px-3 py-1.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                     <button id="add-company-btn" class="bg-blue-600 text-white font-semibold py-1.5 px-4 rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap">+ Add Company</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="name">Company</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="tier">Tier</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="stage">Overall Stage</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="attentionNeeded">Attention</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer" data-sort="lastContact">Last Contact</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companies-table-body">
+                        <!-- Rows will be generated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. The Drill-Down Detail View (Modal) -->
+     <div id="company-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50 opacity-0">
+        <div id="modal-content" class="modal-content bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+             <div class="flex justify-between items-center p-6 border-b">
+                <h2 id="modal-title" class="text-2xl font-bold text-slate-800">Company Details</h2>
+                <button id="close-modal-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button>
+             </div>
+             
+             <div class="overflow-y-auto p-6">
+                <form id="company-form">
+                    <input type="hidden" id="company-id">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="company-name" class="block text-sm font-medium text-slate-700">Company</label>
+                            <input type="text" id="company-name" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="tier" class="block text-sm font-medium text-slate-700">Tier</label>
+                            <select id="tier" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option>1</option><option>2</option><option>3</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="sector" class="block text-sm font-medium text-slate-700">Sector</label>
+                            <input type="text" id="sector" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                     <div class="mb-4">
+                         <label for="rationale" class="block text-sm font-medium text-slate-700">Rationale</label>
+                         <textarea id="rationale" rows="3" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+                </form>
+
+                <hr class="my-6">
+                
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-slate-800">People at this Company</h3>
+                    <button id="add-person-btn" class="text-sm bg-slate-200 text-slate-800 font-semibold py-1 px-3 rounded-md hover:bg-slate-300">+ Add Person</button>
+                </div>
+                
+                <div id="people-list" class="space-y-2">
+                    <!-- People accordions will be generated here -->
+                </div>
+             </div>
+
+             <div class="p-6 border-t bg-slate-50 flex justify-between items-center">
+                <button type="button" id="delete-company-btn" class="text-red-600 hover:text-red-800 font-semibold">Delete Company</button>
+                <button type="button" id="save-company-btn" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700">Save Changes</button>
+             </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tactical stages for individual contacts
+            const PERSON_STAGES = ['To Contact', 'Contacted', 'In Conversation', 'Client', 'Rejected'];
+            let companies = [];
+            let people = [];
+            let sortState = { key: 'name', asc: true };
+            let activeTableFilter = 'all';
+            let activeTimePeriod = 30; // in days
+
+            // --- DOM ELEMENTS (condensed for brevity) ---
+            const analyticsDashboard = document.getElementById('analytics-cards');
+            const tableBody = document.getElementById('companies-table-body');
+            const searchInput = document.getElementById('search-input');
+            const modal = document.getElementById('company-modal');
+            const modalContent = document.getElementById('modal-content');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const addCompanyBtn = document.getElementById('add-company-btn');
+            const companyForm = document.getElementById('company-form');
+            const saveCompanyBtn = document.getElementById('save-company-btn');
+            const deleteCompanyBtn = document.getElementById('delete-company-btn');
+            const timeFilterButtons = document.getElementById('time-filter-buttons');
+            const tableFilterButtons = document.getElementById('table-filter-buttons');
+            
+            // --- DATA PERSISTENCE ---
+            function loadData() {
+                companies = JSON.parse(localStorage.getItem('crmCompaniesV2')) || [];
+                people = JSON.parse(localStorage.getItem('crmPeopleV2')) || [];
+
+                if (companies.length === 0) {
+                    // Load more comprehensive sample data
+                    companies = [
+                        { id: 1, name: '360Learning', tier: 1, sector: 'SaaS', rationale: 'Collaborative learning platform.' },
+                        { id: 2, name: 'Accenture', tier: 1, sector: 'Consulting', rationale: 'Global consultancy.' },
+                        { id: 3, name: 'Amboss', tier: 1, sector: 'EdTech', rationale: 'Medical learning platform.' },
+                        { id: 4, name: 'BibliU', tier: 2, sector: 'EdTech', rationale: 'Digital content management.' },
+                        { id: 5, name: 'CoachHub', tier: 1, sector: 'EdTech', rationale: 'Digital coaching platform.' },
+                        { id: 6, name: 'Old Void Corp', tier: 3, sector: 'Legacy', rationale: 'A contact that went cold a long time ago.'}
+                    ];
+                    const d = new Date();
+                    const today = d.toISOString().split('T')[0];
+                    d.setDate(d.getDate() - 10);
+                    const tenDaysAgo = d.toISOString().split('T')[0];
+                    d.setDate(d.getDate() - 20);
+                    const twentyDaysAgo = d.toISOString().split('T')[0];
+                    d.setDate(d.getDate() - 40);
+                    const fortyDaysAgo = d.toISOString().split('T')[0];
+
+                    people = [
+                        { id: 101, companyId: 1, name: 'Benjamin Marchal', title: 'CEO', stage: 'To Contact', log: [] },
+                        { id: 102, companyId: 2, name: 'Nina Ullmann', title: 'L&D Director', stage: 'Contacted', log: [{ date: tenDaysAgo, type: 'outreach', channel: 'LinkedIn', status: 'Message 1 Sent', notes: 'Initial outreach.' }] },
+                        { id: 103, companyId: 3, name: 'Benedikt Hochkirchen', title: 'Co-CEO', stage: 'In Conversation', log: [{ date: today, type: 'response', channel: 'LinkedIn', status: 'Response Received', notes: 'Interested in audit.' }] },
+                        { id: 104, companyId: 3, name: 'Other Contact', title: 'Product Manager', stage: 'Rejected', log: [{ date: today, type: 'response', channel: 'Email', status: 'Rejected', notes: 'Not a priority.' }] },
+                        { id: 105, companyId: 4, name: 'Dave Sherwood', title: 'CEO', stage: 'Contacted', log: [{ date: twentyDaysAgo, type: 'outreach', channel: 'LinkedIn', status: 'Message 1 Sent', notes: 'This is now in the void.' }] },
+                        { id: 106, companyId: 5, name: 'Matti Niebelschuetz', title: 'CEO', stage: 'Client', log: [{ date: tenDaysAgo, type: 'response', channel: 'Email', status: 'Client', notes: 'LoI Secured.' }] },
+                        { id: 107, companyId: 6, name: 'Ignored Contact', title: 'Manager', stage: 'Contacted', log: [{ date: fortyDaysAgo, type: 'outreach', channel: 'Email', status: 'Message 1 Sent', notes: 'This contact is beyond rescue.'}] }
+                    ];
+                    saveData();
+                }
+            }
+
+            function saveData() {
+                localStorage.setItem('crmCompaniesV2', JSON.stringify(companies));
+                localStorage.setItem('crmPeopleV2', JSON.stringify(people));
+            }
+            
+            // --- RENDER FUNCTIONS ---
+            function renderAll() {
+                renderTable();
+                renderAnalytics();
+            }
+            
+            function renderTable() {
+                tableBody.innerHTML = '';
+                const searchTerm = searchInput.value.toLowerCase();
+                
+                const augmentedCompanies = companies.map(c => augmentCompanyData(c));
+                
+                let filteredCompanies = augmentedCompanies
+                    .filter(c => c.name.toLowerCase().includes(searchTerm))
+                    .filter(c => {
+                        if (activeTableFilter === 'all') return true;
+                        if (activeTableFilter === 'attention') return c.attentionNeeded;
+                        const stageKey = c.stage.toLowerCase().replace(/ /g, '');
+                        if (activeTableFilter === 'clients') return stageKey === 'client';
+                        return stageKey === activeTableFilter;
+                    });
+
+                // Sort
+                filteredCompanies.sort((a, b) => {
+                    const valA = a[sortState.key] || '';
+                    const valB = b[sortState.key] || '';
+                    if(typeof valA === 'boolean') {
+                        return sortState.asc ? (valA === valB ? 0 : valA ? -1 : 1) : (valA === valB ? 0 : valA ? 1 : -1);
+                    }
+                    if (valA < valB) return sortState.asc ? -1 : 1;
+                    if (valA > valB) return sortState.asc ? 1 : -1;
+                    return 0;
+                });
+
+                if (filteredCompanies.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-slate-500">No companies match your filters.</td></tr>`;
+                    return;
+                }
+                
+                filteredCompanies.forEach(company => {
+                    const row = document.createElement('tr');
+                    row.className = 'bg-white border-b table-row-hover';
+                    row.dataset.id = company.id;
+                    row.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">${company.name}</td>
+                        <td class="px-6 py-4 text-center">${company.tier}</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getStageBadgeColor(company.stage)}">${company.stage}</span></td>
+                        <td class="px-6 py-4 text-center">${company.attentionNeeded ? '<span class="text-amber-500 font-bold">●</span>' : '<span class="text-slate-300">-</span>'}</td>
+                        <td class="px-6 py-4">${company.lastContact || 'N/A'}</td>
+                    `;
+                    row.addEventListener('click', () => openModal(company.id));
+                    tableBody.appendChild(row);
+                });
+            }
+
+            function renderAnalytics() {
+                analyticsDashboard.innerHTML = '';
+                const allLogs = people.flatMap(p => p.log);
+
+                const logsInPeriod = allLogs.filter(log => {
+                    if (activeTimePeriod === 'all') return true;
+                    const logDate = new Date(log.date);
+                    const periodStartDate = new Date();
+                    periodStartDate.setDate(periodStartDate.getDate() - activeTimePeriod);
+                    return logDate >= periodStartDate;
+                });
+                
+                const outreachInPeriod = logsInPeriod.filter(l => l.type === 'outreach').length;
+                const responsesInPeriod = logsInPeriod.filter(l => l.type === 'response').length;
+                const conversionRate = outreachInPeriod > 0 ? ((responsesInPeriod / outreachInPeriod) * 100).toFixed(1) : 0;
+                
+                const stats = [
+                    { label: 'Total Companies', value: companies.length },
+                    { label: `Outreach (${activeTimePeriod}D)`, value: outreachInPeriod },
+                    { label: `Responses (${activeTimePeriod}D)`, value: responsesInPeriod },
+                    { label: `Response Rate (${activeTimePeriod}D)`, value: `${conversionRate}%` }
+                ];
+                
+                stats.forEach(stat => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white p-4 rounded-lg shadow-sm border border-slate-200';
+                    card.innerHTML = `<div class="text-sm font-medium text-slate-500">${stat.label}</div><div class="mt-1 text-3xl font-semibold text-slate-900">${stat.value}</div>`;
+                    analyticsDashboard.appendChild(card);
+                });
+            }
+            
+            // --- UTILITY & HELPER FUNCTIONS ---
+            function augmentCompanyData(company) {
+                 const companyPeople = people.filter(p => p.companyId === company.id);
+                 const allLogs = companyPeople.flatMap(p => p.log);
+                 allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+                 
+                 const lastContact = allLogs.length > 0 ? allLogs[0].date : null;
+                 const lastLogIsOutreach = allLogs.length > 0 && allLogs[0].type === 'outreach';
+                 const daysSinceLastContact = lastContact ? (new Date() - new Date(lastContact)) / (1000 * 60 * 60 * 24) : Infinity;
+
+                 const stage = getCompanyOverallStage(companyPeople, daysSinceLastContact, lastLogIsOutreach);
+                 
+                 // --- REFINED LOGIC FOR ATTENTION DOT ---
+                 let attentionNeeded = false;
+                 if (stage === 'Talking' && daysSinceLastContact > 7) {
+                    attentionNeeded = true;
+                 } else if (stage === 'Void' && daysSinceLastContact <= 30) {
+                    // A 'Void' company only needs attention if it has been silent for 7 to 30 days.
+                    // After 30 days, it is considered "beyond rescue" and no longer needs attention.
+                    attentionNeeded = true;
+                 }
+
+                 return { ...company, stage, lastContact, attentionNeeded };
+            }
+
+            function getStageBadgeColor(stage) {
+                const colors = {
+                    'Explore': 'bg-slate-200 text-slate-800',
+                    'Talking': 'bg-sky-200 text-sky-800',
+                    'Client': 'bg-green-200 text-green-800',
+                    'Rejection': 'bg-red-200 text-red-800',
+                    'Void': 'bg-gray-200 text-gray-800'
+                };
+                return colors[stage] || 'bg-slate-200 text-slate-800';
+            }
+
+            function getCompanyOverallStage(companyPeople, daysSinceLastContact, lastLogIsOutreach) {
+                if (!companyPeople || companyPeople.length === 0) return 'Explore';
+                
+                const stages = new Set(companyPeople.map(p => p.stage));
+
+                if (stages.has('Client')) return 'Client';
+                if (companyPeople.every(p => p.stage === 'Rejected')) return 'Rejection';
+
+                const hasActiveTalks = stages.has('Contacted') || stages.has('In Conversation');
+                if (hasActiveTalks) {
+                    if (lastLogIsOutreach && daysSinceLastContact > 14) {
+                        return 'Void'; // No response for 2 weeks after last outreach
+                    }
+                    return 'Talking';
+                }
+                
+                return 'Explore'; // Default if no other condition is met
+            }
+            
+            // --- MODAL LOGIC & EVENT LISTENERS ---
+            // (Condensed for brevity, includes functions for open/close, renderPeopleInModal, and event listeners for save, delete, add person, add log, etc.)
+            function openModal(companyId) {
+                const company = companies.find(c => c.id === companyId) || {};
+                
+                companyForm.elements['company-id'].value = companyId || '';
+                companyForm.elements['company-name'].value = company.name || '';
+                companyForm.elements['tier'].value = company.tier || 1;
+                companyForm.elements['sector'].value = company.sector || '';
+                companyForm.elements['rationale'].value = company.rationale || '';
+                
+                document.getElementById('modal-title').textContent = companyId ? `Edit: ${company.name}` : 'Add New Company';
+                deleteCompanyBtn.style.display = companyId ? 'block' : 'none';
+                
+                renderPeopleInModal(companyId);
+                
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                }, 10);
+            }
+
+            function closeModal() {
+                 modal.classList.add('opacity-0');
+                 modalContent.classList.add('scale-95');
+                 setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+            
+             function renderPeopleInModal(companyId) {
+                const peopleList = document.getElementById('people-list');
+                peopleList.innerHTML = '';
+                const companyPeople = people.filter(p => p.companyId === companyId);
+
+                if (companyPeople.length === 0) {
+                    peopleList.innerHTML = `<p class="text-sm text-slate-500 p-2">No people added to this company yet.</p>`;
+                    return;
+                }
+
+                companyPeople.forEach(person => {
+                    const details = document.createElement('details');
+                    details.className = 'person-accordion bg-white border rounded-lg';
+                    details.innerHTML = `
+                        <summary class="p-4 cursor-pointer font-semibold flex justify-between items-center">
+                            <span>${person.name} - <em class="font-normal text-slate-600">${person.title}</em></span>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStageBadgeColor(person.stage)}">${person.stage}</span>
+                        </summary>
+                        <div class="p-4 border-t bg-slate-50">
+                            <!-- Person edit form -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium">Name</label>
+                                    <input type="text" value="${person.name}" data-person-id="${person.id}" data-field="name" class="person-edit-field mt-1 w-full rounded-md border-slate-300">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium">Title</label>
+                                    <input type="text" value="${person.title}" data-person-id="${person.id}" data-field="title" class="person-edit-field mt-1 w-full rounded-md border-slate-300">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium">Stage</label>
+                                    <select data-person-id="${person.id}" data-field="stage" class="person-edit-field mt-1 w-full rounded-md border-slate-300">
+                                        ${PERSON_STAGES.map(s => `<option value="${s}" ${s === person.stage ? 'selected' : ''}>${s}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            <hr class="my-4">
+                            <!-- Contact Log for this person -->
+                            <h4 class="font-semibold mb-2">Contact Log</h4>
+                            <div class="contact-log-entries space-y-2 mb-4 max-h-40 overflow-y-auto pr-2 border rounded-md p-2 bg-white">
+                                <!-- JS populates this -->
+                            </div>
+                            <!-- Add Log Form for this person -->
+                             <div class="p-3 bg-slate-100 rounded-md">
+                                <h5 class="text-sm font-semibold mb-2">Add Log Entry</h5>
+                                <div class="grid grid-cols-2 gap-2 mb-2">
+                                    <select class="log-input-${person.id}" data-field="channel"><option>LinkedIn</option><option>Email</option><option>Call</option><option>Meeting</option></select>
+                                    <select class="log-input-${person.id}" data-field="type"><option value="outreach">Outreach</option><option value="response">Response</option></select>
+                                </div>
+                                <textarea class="log-input-${person.id} w-full text-sm rounded-md border-slate-300" data-field="notes" rows="2" placeholder="Notes..."></textarea>
+                                <div class="text-right mt-2">
+                                    <button type="button" class="add-person-log-btn text-xs bg-slate-200 font-semibold py-1 px-2 rounded" data-person-id="${person.id}">Add Log</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    peopleList.appendChild(details);
+                    const logContainer = details.querySelector('.contact-log-entries');
+                    if(person.log.length > 0) {
+                       [...person.log].reverse().forEach(entry => {
+                           const logDiv = document.createElement('div');
+                           logDiv.className = `p-1.5 bg-white border rounded text-xs ${entry.type === 'response' ? 'border-blue-300' : 'border-slate-200'}`;
+                           logDiv.innerHTML = `<p class="font-semibold">${entry.channel} <span class="font-normal text-slate-500">- ${entry.date}</span></p><p>${entry.notes}</p>`;
+                           logContainer.appendChild(logDiv);
+                       });
+                    } else {
+                        logContainer.innerHTML = `<p class="text-xs text-slate-500 p-1">No log entries for this person.</p>`;
+                    }
+                });
+            }
+            
+            addCompanyBtn.addEventListener('click', () => openModal(null));
+            closeModalBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+            searchInput.addEventListener('input', renderTable);
+            saveCompanyBtn.addEventListener('click', () => {
+                const idInput = companyForm.elements['company-id'];
+                const id = idInput ? parseInt(idInput.value) : null;
+                const formData = {
+                    name: companyForm.elements['company-name'].value,
+                    tier: parseInt(companyForm.elements['tier'].value),
+                    sector: companyForm.elements['sector'].value,
+                    rationale: companyForm.elements['rationale'].value,
+                };
+                if (id) {
+                    const index = companies.findIndex(c => c.id === id);
+                    if (index !== -1) {
+                        companies[index] = { ...companies[index], ...formData };
+                    }
+                } else {
+                    const newId = companies.length > 0 ? Math.max(...companies.map(c => c.id)) + 1 : 1;
+                    const newCompany = { id: newId, ...formData };
+                    companies.push(newCompany);
+                }
+                saveData(); renderAll(); closeModal();
+            });
+            
+            timeFilterButtons.addEventListener('click', (e) => {
+                if(e.target.tagName === 'BUTTON') {
+                    activeTimePeriod = e.target.dataset.period === 'all' ? 'all' : parseInt(e.target.dataset.period);
+                    document.querySelectorAll('.time-filter-btn').forEach(btn => btn.classList.remove('filter-btn-active'));
+                    e.target.classList.add('filter-btn-active');
+                    renderAnalytics();
+                }
+            });
+
+            tableFilterButtons.addEventListener('click', (e) => {
+                 if(e.target.tagName === 'BUTTON') {
+                    activeTableFilter = e.target.dataset.filter;
+                    document.querySelectorAll('.table-filter-btn').forEach(btn => {
+                        btn.classList.remove('filter-btn-active', 'bg-blue-700', 'text-white');
+                        btn.classList.add('bg-white', 'border', 'border-slate-300');
+                    });
+                    e.target.classList.add('filter-btn-active', 'bg-blue-700', 'text-white');
+                    e.target.classList.remove('bg-white', 'border', 'border-slate-300');
+                    renderTable();
+                }
+            });
+
+            document.getElementById('people-list').addEventListener('click', e => {
+                if (e.target.classList.contains('add-person-log-btn')) {
+                    const personId = parseInt(e.target.dataset.personId);
+                    const person = people.find(p => p.id === personId);
+                    const inputs = document.querySelectorAll(`.log-input-${personId}`);
+                    const newLogEntry = { date: new Date().toISOString().split('T')[0] };
+                    inputs.forEach(input => {
+                        newLogEntry[input.dataset.field] = input.value;
+                        if (input.tagName !== 'SELECT') input.value = '';
+                    });
+                    
+                    person.log.push(newLogEntry);
+                    saveData();
+                    renderPeopleInModal(person.companyId);
+                    renderAll();
+                }
+            });
+
+            document.getElementById('people-list').addEventListener('change', e => {
+                 if (e.target.classList.contains('person-edit-field')) {
+                    const personId = parseInt(e.target.dataset.personId);
+                    const field = e.target.dataset.field;
+                    const person = people.find(p => p.id === personId);
+                    if (person) {
+                       person[field] = e.target.value;
+                       saveData();
+                       renderAll();
+                    }
+                }
+            });
+            
+             document.getElementById('add-person-btn').addEventListener('click', () => {
+                const companyIdInput = companyForm.elements['company-id'];
+                const companyId = companyIdInput ? parseInt(companyIdInput.value) : null;
+                if (!companyId) return;
+
+                const personName = prompt("Enter the new person's name:");
+                if (personName && personName.trim() !== '') {
+                    const newPerson = {
+                        id: people.length > 0 ? Math.max(...people.map(p => p.id)) + 1 : 101,
+                        companyId: companyId,
+                        name: personName.trim(),
+                        title: 'New Contact',
+                        stage: 'To Contact',
+                        log: []
+                    };
+                    people.push(newPerson);
+                    saveData();
+                    renderPeopleInModal(companyId);
+                    renderAll();
+                }
+            });
+
+            deleteCompanyBtn.addEventListener('click', () => {
+                 const companyIdInput = companyForm.elements['company-id'];
+                 const id = companyIdInput ? parseInt(companyIdInput.value) : null;
+                 if (id && confirm('Are you sure you want to delete this company and all its people?')) {
+                     companies = companies.filter(c => c.id !== id);
+                     people = people.filter(p => p.companyId !== id);
+                     saveData();
+                     renderAll();
+                     closeModal();
+                 }
+            });
+
+            // --- INITIAL LOAD ---
+            loadData();
+            renderAll();
+        });
+    </script>
+</body>
+</html>
+
